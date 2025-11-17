@@ -1119,6 +1119,27 @@ def count_word_frequency(
         group_key = group["group_key"]
         word_stats[group_key] = {"count": 0, "titles": {}}
 
+    # 优化：先从每个平台取Top5，然后再进行汇总
+    top_n_per_platform = 5
+    filtered_results = {}
+    
+    for source_id, titles_data in results_to_process.items():
+        # 对每个平台的消息按排名排序，取前N条
+        sorted_platform_titles = sorted(
+            titles_data.items(),
+            key=lambda x: min(x[1].get("ranks", [999]))  # 按最小排名排序
+        )
+        
+        # 只保留Top N
+        top_titles = dict(sorted_platform_titles[:top_n_per_platform])
+        if top_titles:
+            filtered_results[source_id] = top_titles
+    
+    print(f"📊 平台消息筛选：从 {len(results_to_process)} 个平台中，每个平台取Top{top_n_per_platform}，共 {sum(len(titles) for titles in filtered_results.values())} 条消息")
+    
+    # 使用筛选后的结果进行后续处理
+    results_to_process = filtered_results
+
     for source_id, titles_data in results_to_process.items():
         total_titles += len(titles_data)
 
