@@ -1308,6 +1308,8 @@ def count_word_frequency(
             )
 
     stats = []
+    max_items_per_category = 5  # 每个分类最多显示5条消息
+    
     for group_key, data in word_stats.items():
         all_titles = []
         for source_id, title_list in data["titles"].items():
@@ -1323,13 +1325,23 @@ def count_word_frequency(
             ),
         )
 
+        # 限制每个分类最多5条消息
+        limited_titles = sorted_titles[:max_items_per_category]
+        limited_count = len(limited_titles)
+        original_count = len(sorted_titles)
+        
+        # 如果被截断，输出日志
+        if original_count > max_items_per_category:
+            print(f"分类 [{group_key}] 原有 {original_count} 条消息，限制为 {max_items_per_category} 条")
+
         stats.append(
             {
                 "word": group_key,
-                "count": data["count"],
-                "titles": sorted_titles,
+                "count": limited_count,  # 使用限制后的数量
+                "original_count": original_count,  # 保存原始数量用于显示
+                "titles": limited_titles,  # 使用限制后的标题列表
                 "percentage": (
-                    round(data["count"] / total_titles * 100, 2)
+                    round(limited_count / total_titles * 100, 2)
                     if total_titles > 0
                     else 0
                 ),
