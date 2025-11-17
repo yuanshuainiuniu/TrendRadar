@@ -1325,10 +1325,26 @@ def count_word_frequency(
             ),
         )
 
+        # 去重：对于标题完全相同的新闻，只保留权重最高的那条
+        seen_titles = {}
+        deduplicated_titles = []
+        duplicate_count = 0
+        
+        for title_data in sorted_titles:
+            title_text = title_data["title"]
+            if title_text not in seen_titles:
+                seen_titles[title_text] = True
+                deduplicated_titles.append(title_data)
+            else:
+                duplicate_count += 1
+        
+        if duplicate_count > 0:
+            print(f"分类 [{group_key}] 去重 {duplicate_count} 条重复标题")
+
         # 限制每个分类最多5条消息
-        limited_titles = sorted_titles[:max_items_per_category]
+        limited_titles = deduplicated_titles[:max_items_per_category]
         limited_count = len(limited_titles)
-        original_count = len(sorted_titles)
+        original_count = len(deduplicated_titles)
         
         # 如果被截断，输出日志
         if original_count > max_items_per_category:
